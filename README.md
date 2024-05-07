@@ -1,4 +1,4 @@
 # HobbylosOS
 
 ### Needed Stuff:
-  ``` brew install make, quemu nasm```
+  ``` brew install make quemu nasm```
