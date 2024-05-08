@@ -71,15 +71,23 @@ main:
   mov ss, ax
   mov sp, 0x7C00
 
+  mov [ebr_drive_number], dl
+  mov ax, 1 ;LBA set to 1, second disk sector
+  mov cl, 1 
+  mov bx, 0x7E00
+  call disk_read
+
   ; print msg 
   mov si, msg_hello
   call puts
-
+  cli
   hlt
 
+floppy_err: 
+  hlt
 .halt:
-  jmp .halt
-
+  cli
+  hlt 
 ; Disk Routines
 ;
 ; Converts LBH Adress to CHS Adress 
@@ -110,6 +118,65 @@ lba_to_chs:
   pop ax
   mov dl, al
   pop ax 
+  ret
+
+; Read sectors from disk 
+; Params:
+;   ax: LBA adress
+;   cl: num of sectors to Read
+;   dl: drive number
+;   es:bx: memory adress to store data
+disk_read:
+
+  push ax
+  push bx
+  push cx
+  push dx
+  push di
+
+  push cx ;temp. save cl 
+  call lba_to_chs
+  pop ax
+
+  mov ah, 02h
+  mov di, 3 ; retry time
+  
+
+.retry:
+  pusha ; save all registers
+  stc   ; set carry flag
+  int 13h ; carry flag cleard = it worked
+  jnc .done
+  ; read unsucessfull
+  popa
+  call disk_reset
+
+  dec di
+  test di, di
+  jnz .retry
+
+.fail:
+  jmp floppy_err
+
+.done: 
+  popa
+
+  pop di 
+  pop dx 
+  pop cx
+  pop bx
+  pop ax
+  ret
+
+; Reset disk controller
+; di = driver num
+disk_reset:
+  pusha
+  mov ah, 0 
+  stc
+  int 13h 
+  jc floppy_err
+  popa 
   ret
 
 msg_hello: db "Hello World!", ENDL,0
