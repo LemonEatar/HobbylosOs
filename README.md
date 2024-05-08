@@ -7,4 +7,4 @@ This Os is made with help of nanobyte_os from the youtuber Nanobyte and the Buil
   ``` brew install make quemu nasm```
 
 ### How to start:
-  ```qemu-system-i386 -fda build/main_floppy.img". "$HOME/.cargo/env```
+  ```./run.sh```
